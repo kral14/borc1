@@ -225,11 +225,14 @@ class AlisQaimeFormWidget(QWidget):
         self.ui.table_toolbar.addAction(self.action_copy_row); self.ui.table_toolbar.addSeparator()
         settings_icon = style.standardIcon(QStyle.StandardPixmap.SP_ToolBarHorizontalExtensionButton); self.action_settings = QAction(settings_icon, "Ayarlar", self)
         self.action_settings.setToolTip("Cədvəl sütunlarını tənzimləyir"); self.ui.table_toolbar.addAction(self.action_settings)
-        self.ui.btn_save.setToolTip("Qaiməni yadda saxlayır (Ctrl+Enter)"); self.ui.btn_cancel.setToolTip("Formadan çıxır (Esc)"); self.ui.btn_cancel.setShortcut(QKeySequence(Qt.Key.Key_Escape))
+        
+        # DƏYİŞİKLİK BURADADIR: Ləğv Et düyməsinin Esc qısayolunu ləğv edirik
+        self.ui.btn_save.setToolTip("Qaiməni yadda saxlayır (Ctrl+Enter)"); self.ui.btn_cancel.setToolTip("Formadan çıxır")
+        
         save_action = QAction("Yadda Saxla", self); save_action.setShortcut(QKeySequence("Ctrl+Return")); save_action.triggered.connect(self.save_invoice); self.addAction(save_action)
         self.ui.action_add_row.triggered.connect(lambda: self.add_row()); self.ui.action_delete_row.triggered.connect(self.delete_row)
         self.action_copy_row.triggered.connect(self.copy_row); self.action_settings.triggered.connect(self.open_column_settings)
-
+    
     def setup_table(self):
         self.column_map = load_table_settings(self.ui.table_items, "AlisQaimeTable", MASTER_COLUMN_LIST)
         self.ui.table_items.horizontalHeader().setSectionsMovable(True)

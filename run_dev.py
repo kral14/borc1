@@ -1,4 +1,3 @@
-# run_dev.py
 import sys
 import time
 import subprocess
@@ -6,15 +5,18 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 class ChangeHandler(FileSystemEventHandler):
+    """Fayl dəyişikliklərini izləyir və proqramı yenidən başladır."""
     def __init__(self):
         self.process = None
         self.start_process()
 
     def start_process(self):
+        """main.py faylını yeni bir prosesdə işə salır."""
         print(">>> Proqram başladılır...")
         self.process = subprocess.Popen([sys.executable, 'main.py'])
 
     def restart_process(self):
+        """Mövcud prosesi dayandırır və yenisini başladır."""
         print(">>> Fayllarda dəyişiklik aşkarlandı. Proqram yenidən başladılır...")
         if self.process:
             self.process.terminate()
@@ -22,9 +24,15 @@ class ChangeHandler(FileSystemEventHandler):
         self.start_process()
 
     def on_modified(self, event):
+        """Yalnız .py faylları dəyişdirildikdə proqramı yenidən başladır."""
         if event.is_directory:
             return
+        
+        # DƏYİŞİKLİK BURADADIR: Yalnız .py fayllarını yoxlayırıq
         if event.src_path.endswith('.py'):
+            # run_dev.py faylının özü dəyişdikdə reaksiya verməmək üçün yoxlama (optional)
+            if "run_dev.py" in event.src_path:
+                return
             self.restart_process()
 
 if __name__ == "__main__":

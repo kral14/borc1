@@ -1,6 +1,6 @@
-# main_app_window.py (Çoxlu pəncərə dəstəyi ilə)
+# main_app_window.py (Log sistemi inteqrasiya edildi)
 
-from PyQt6.QtWidgets import (QMainWindow, QMenu, QWidget, QMdiArea, QVBoxLayout, 
+from PyQt6.QtWidgets import (QMainWindow, QMenu, QWidget, QMdiArea, QVBoxLayout,
                              QToolBar, QToolButton, QHBoxLayout, QSizePolicy, QStyle)
 from PyQt6.QtGui import QAction, QIcon, QFont, QKeySequence
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QEvent
@@ -11,6 +11,7 @@ from app_satici_widget import SaticiManagerWidget
 from app_mal_widget import MalManagerWidget
 from app_alis_qaime_widget import AlisQaimeManagerWidget
 from app_satis_qaime_widget import SatisQaimeManagerWidget
+from logger_widget import LoggerWidget # YENİ
 
 class TaskbarButton(QWidget):
     clicked = pyqtSignal()
@@ -33,7 +34,7 @@ class TaskbarButton(QWidget):
         close_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_TitleBarCloseButton)
         self.close_button.setIcon(close_icon)
         self.close_button.setStyleSheet("QToolButton { border: none; border-radius: 3px; } QToolButton:hover { background-color: #c42b1c; }")
-        
+
         layout.addWidget(self.main_button)
         layout.addWidget(self.close_button)
 
@@ -53,17 +54,54 @@ class MainAppWindow(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        
-        self.window_map = {}
-        
-        self.setup_mdi_interface()
 
-        self.ui.btn_musteriler.clicked.connect(lambda: self.open_section_in_subwindow(MusteriManagerWidget, "Müştərilər"))
-        self.ui.btn_saticilar.clicked.connect(lambda: self.open_section_in_subwindow(SaticiManagerWidget, "Satıcılar"))
-        self.ui.btn_mallar.clicked.connect(lambda: self.open_section_in_subwindow(MalManagerWidget, "Mallar"))
-        
-        self.setup_qaimeler_menu()
+        self.window_map = {}
+
+        self.setup_mdi_interface()
+        self.create_top_navbar()
+        self.setup_view_menu() # YENİ: Görünüş menyusunu qurur
         self.setup_window_menu()
+
+    def create_top_navbar(self):
+        self.ui.menuFrame.hide()
+        nav_bar = QToolBar("Naviqasiya")
+        nav_bar.setMovable(False)
+        nav_bar.setFloatable(False)
+        nav_bar.setStyleSheet("QToolBar { border-bottom: 1px solid #444; padding: 5px; }")
+
+        btn_musteriler = QToolButton(); btn_musteriler.setText("Müştərilər")
+        btn_saticilar = QToolButton(); btn_saticilar.setText("Satıcılar")
+        btn_mallar = QToolButton(); btn_mallar.setText("Mallar")
+        btn_qaimeler = QToolButton(); btn_qaimeler.setText("Qaimələr")
+
+        buttons = [btn_musteriler, btn_saticilar, btn_mallar, btn_qaimeler]
+        
+        button_style = """
+            QToolButton {
+                padding: 6px 15px; border: 1px solid transparent; background-color: #4a4a4a;
+                border-radius: 4px; color: white; font-weight: bold; margin-right: 5px;
+            }
+            QToolButton:hover { background-color: #6E6E6E; }
+            QToolButton:pressed { background-color: #4A4A4A; }
+            QToolButton::menu-indicator { image: none; }
+        """
+        for btn in buttons:
+            btn.setStyleSheet(button_style)
+            nav_bar.addWidget(btn)
+
+        btn_qaimeler.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        qaime_menu = QMenu(self)
+        action_alis = qaime_menu.addAction("Alış Qaimələri")
+        action_satis = qaime_menu.addAction("Satış Qaimələri")
+        btn_qaimeler.setMenu(qaime_menu)
+
+        btn_musteriler.clicked.connect(lambda: self.open_section_in_subwindow(MusteriManagerWidget, "Müştərilər"))
+        btn_saticilar.clicked.connect(lambda: self.open_section_in_subwindow(SaticiManagerWidget, "Satıcılar"))
+        btn_mallar.clicked.connect(lambda: self.open_section_in_subwindow(MalManagerWidget, "Mallar"))
+        action_alis.triggered.connect(lambda: self.open_section_in_subwindow(AlisQaimeManagerWidget, "Alış Qaimələri"))
+        action_satis.triggered.connect(lambda: self.open_section_in_subwindow(SatisQaimeManagerWidget, "Satış Qaimələri"))
+
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, nav_bar)
 
     def setup_mdi_interface(self):
         central_widget = QWidget()
@@ -84,7 +122,7 @@ class MainAppWindow(QMainWindow):
         self.ui.gridLayout.removeWidget(old_content_frame)
         old_content_frame.deleteLater()
         
-        self.ui.gridLayout.addWidget(central_widget, 0, 1, 1, 1)
+        self.ui.gridLayout.addWidget(central_widget, 0, 0, 1, 2)
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Type.Close and source in self.window_map:
@@ -92,12 +130,14 @@ class MainAppWindow(QMainWindow):
         return super().eventFilter(source, event)
 
     def open_section_in_subwindow(self, widget_class, title):
-        # DƏYİŞİKLİK: Eyni adda pəncərənin təkrar açılmasını məhdudlaşdıran kod silindi
-        # Artıq hər dəfə yeni pəncərə açılacaq
+        # Eyni pəncərənin təkrar açılmaması üçün yoxlama (istəyə bağlı)
+        # for window in self.mdi_area.subWindowList():
+        #     if window and window.windowTitle() == title:
+        #         self.mdi_area.setActiveSubWindow(window)
+        #         return
         
         content_widget = widget_class()
         sub_window = self.mdi_area.addSubWindow(content_widget)
-        
         sub_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         sub_window.installEventFilter(self)
         
@@ -153,11 +193,14 @@ class MainAppWindow(QMainWindow):
             window_menu.addAction(close_all_action)
         
     def setup_qaimeler_menu(self):
-        self.qaime_menu = QMenu(self)
-        self.action_alis_qaimesi = QAction("Alış Qaimələri", self)
-        self.action_satis_qaimesi = QAction("Satış Qaimələri", self)
-        self.qaime_menu.addAction(self.action_alis_qaimesi); self.qaime_menu.addAction(self.action_satis_qaimesi)
-        self.action_alis_qaimesi.triggered.connect(lambda: self.open_section_in_subwindow(AlisQaimeManagerWidget, "Alış Qaimələri"))
-        self.action_satis_qaimesi.triggered.connect(lambda: self.open_section_in_subwindow(SatisQaimeManagerWidget, "Satış Qaimələri"))
-        self.ui.btn_qaimeler.setMenu(self.qaime_menu)
-        self.ui.btn_qaimeler.setStyleSheet(self.ui.btn_qaimeler.styleSheet() + "QPushButton::menu-indicator { image: none; }")
+        # Bu metodun məntiqi artıq create_top_navbar içinə köçürüldü
+        pass
+    
+    def setup_view_menu(self):
+        """Log pəncərəsini açmaq üçün menyu yaradır."""
+        view_menu = self.menuBar().addMenu("Görünüş")
+        show_log_action = QAction("Log Pəncərəsini Göstər", self)
+        show_log_action.triggered.connect(
+            lambda: self.open_section_in_subwindow(LoggerWidget, "Proses Gedişatı")
+        )
+        view_menu.addAction(show_log_action)

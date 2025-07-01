@@ -37,83 +37,103 @@ def add_column_safely(table, column_name, column_type):
         if conn: conn.close()
 
 
+# database.py faylında bu funksiyanı tapıb əvəz edin
+
 def create_tables():
     """Proqram üçün lazım olan bütün cədvəlləri yaradır və mövcud cədvəlləri yeniləyir"""
-    # 1. Əsas cədvəlləri yaratmaq
-    commands = (
-        """
-        CREATE TABLE IF NOT EXISTS customers (
-            id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, phone VARCHAR(50), address TEXT,
-            is_active BOOLEAN DEFAULT TRUE, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS suppliers (
-            id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, contact_person VARCHAR(255),
-            phone VARCHAR(50), address TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS products (
-            id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, barcode VARCHAR(100), product_code VARCHAR(100),
-            article VARCHAR(100), category TEXT, supplier_id INTEGER,
-            purchase_price NUMERIC(10, 2) DEFAULT 0, sale_price NUMERIC(10, 2) DEFAULT 0,
-            stock INTEGER DEFAULT 0, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE SET NULL
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS sales_invoices (
-            id SERIAL PRIMARY KEY, customer_id INTEGER NOT NULL, invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
-            total_amount NUMERIC(10, 2) NOT NULL, is_paid BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS sales_invoice_items (
-            id SERIAL PRIMARY KEY, invoice_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
-            quantity INTEGER NOT NULL, unit_price NUMERIC(10, 2) NOT NULL, total_price NUMERIC(10, 2) NOT NULL,
-            FOREIGN KEY (invoice_id) REFERENCES sales_invoices (id) ON DELETE CASCADE,
-            FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS purchase_invoices (
-            id SERIAL PRIMARY KEY, supplier_id INTEGER NOT NULL, invoice_number VARCHAR(100),
-            invoice_date DATE NOT NULL DEFAULT CURRENT_DATE, total_amount NUMERIC(10, 2) NOT NULL,
-            is_paid BOOLEAN DEFAULT FALSE, is_active BOOLEAN DEFAULT TRUE,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE RESTRICT
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS purchase_invoice_items (
-            id SERIAL PRIMARY KEY, purchase_invoice_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
-            quantity INTEGER NOT NULL, unit_price NUMERIC(10, 2) NOT NULL,
-            discount_percent NUMERIC(5, 2) DEFAULT 0, line_total NUMERIC(10, 2) NOT NULL,
-            FOREIGN KEY (purchase_invoice_id) REFERENCES purchase_invoices (id) ON DELETE CASCADE,
-            FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
-        );
-        """
-    )
     conn = None
     try:
         conn = get_db_connection()
         if conn is None: return
         cur = conn.cursor()
+        
+        # Əsas cədvəllərin yaradılması
+        commands = (
+            # ... customers və suppliers cədvəlləri olduğu kimi qalır ...
+            """
+            CREATE TABLE IF NOT EXISTS customers (
+                id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, phone VARCHAR(50), address TEXT,
+                is_active BOOLEAN DEFAULT TRUE, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS suppliers (
+                id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, contact_person VARCHAR(255),
+                phone VARCHAR(50), address TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
+            # YENI: Kateqoriyalar üçün cədvəl
+            """
+            CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                parent_id INTEGER REFERENCES categories(id) ON DELETE CASCADE
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, barcode VARCHAR(100), product_code VARCHAR(100),
+                article VARCHAR(100), 
+                purchase_price NUMERIC(10, 2) DEFAULT 0, sale_price NUMERIC(10, 2) DEFAULT 0,
+                stock INTEGER DEFAULT 0, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                supplier_id INTEGER REFERENCES suppliers (id) ON DELETE SET NULL,
+                category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
+            );
+            """,
+            # ... qalan cədvəllər olduğu kimi qalır ...
+            """
+            CREATE TABLE IF NOT EXISTS sales_invoices (
+                id SERIAL PRIMARY KEY, customer_id INTEGER NOT NULL, invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                total_amount NUMERIC(10, 2) NOT NULL, is_paid BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS sales_invoice_items (
+                id SERIAL PRIMARY KEY, invoice_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL, unit_price NUMERIC(10, 2) NOT NULL, total_price NUMERIC(10, 2) NOT NULL,
+                FOREIGN KEY (invoice_id) REFERENCES sales_invoices (id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS purchase_invoices (
+                id SERIAL PRIMARY KEY, supplier_id INTEGER NOT NULL, invoice_number VARCHAR(100),
+                invoice_date DATE NOT NULL DEFAULT CURRENT_DATE, total_amount NUMERIC(10, 2) NOT NULL,
+                is_paid BOOLEAN DEFAULT FALSE, is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE RESTRICT
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS purchase_invoice_items (
+                id SERIAL PRIMARY KEY, purchase_invoice_id INTEGER NOT NULL, product_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL, unit_price NUMERIC(10, 2) NOT NULL,
+                discount_percent NUMERIC(5, 2) DEFAULT 0, line_total NUMERIC(10, 2) NOT NULL,
+                FOREIGN KEY (purchase_invoice_id) REFERENCES purchase_invoices (id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
+            );
+            """
+        )
         for command in commands:
             cur.execute(command)
+        
         cur.close()
         conn.commit()
         print("Əsas cədvəllər uğurla yaradıldı və ya artıq mövcuddur.")
     except Exception as e:
         print(f"Əsas cədvəllər yaradılarkən xəta: {e}")
+        if conn: conn.rollback()
     finally:
         if conn: conn.close()
 
-    # 2. Bütün sütunların mövcudluğunu yoxlamaq və əlavə etmək
+    # Sütunları yeniləyirik
     print("Sütunlar yoxlanılır...")
+    # Köhnə category sütununu silib, yenisini əlavə edirik (ehtiyac olarsa)
+    # Bu hissəni manual idarə etmək daha yaxşıdır, hələlik add_column_safely ilə davam edirik
+    add_column_safely("products", "category_id", "INTEGER REFERENCES categories(id) ON DELETE SET NULL")
+
     add_column_safely("sales_invoices", "invoice_number", "VARCHAR(100)")
     add_column_safely("sales_invoices", "is_active", "BOOLEAN DEFAULT TRUE")
     add_column_safely("sales_invoices", "due_date", "DATE")
@@ -124,9 +144,77 @@ def create_tables():
 
     add_column_safely("sales_invoice_items", "discount_percent", "NUMERIC(5, 2) DEFAULT 0")
     print("Sütunların yoxlanması tamamlandı.")
-
 # --- BÜTÜN DİGƏR FUNKSİYALAR OLDUĞU KİMİ QALIR ---
 # --- (Əvvəlki cavabda təqdim edilən tam kodlarla eynidir) ---
+# --- KATEQORIYA FUNKSİYALARI ---
+def add_category(name, parent_id=None):
+    sql = "INSERT INTO categories (name, parent_id) VALUES (%s, %s);"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (name, parent_id))
+        return True
+    except Exception as e: print(f"Kateqoriya əlavə etmə xətası: {e}"); return False
+
+def get_all_categories():
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execute("SELECT * FROM categories ORDER BY name")
+                return cur.fetchall()
+    except Exception as e: print(f"Kateqoriyaları alarkən xəta: {e}"); return []
+
+def update_category_name(category_id, new_name):
+    sql = "UPDATE categories SET name = %s WHERE id = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (new_name, category_id))
+        return True
+    except Exception as e: print(f"Kateqoriya yeniləmə xətası: {e}"); return False
+
+def delete_category(category_id):
+    sql = "DELETE FROM categories WHERE id = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (category_id,))
+        return True
+    except Exception as e: print(f"Kateqoriya silmə xətası: {e}"); return False
+
+# --- MƏHSUL FUNKSİYALARI (Yenilənmiş) ---
+# database.py faylında bu iki funksiyanı tapıb əvəz edin:
+
+def add_product(name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock):
+    # DÜZƏLİŞ: SQL sorğusunda sütunların sırası düzgün yazıldı
+    sql = "INSERT INTO products (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock))
+        return True
+    except Exception as e: 
+        print(f"Mal əlavə etmə xətası: {e}")
+        return False
+
+def update_product(product_id, name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock):
+    # DÜZƏLİŞ: SQL sorğusunda sütunların sırası düzgün yazıldı
+    sql = "UPDATE products SET name=%s, barcode=%s, product_code=%s, article=%s, category_id=%s, supplier_id=%s, purchase_price=%s, sale_price=%s, stock=%s WHERE id=%s"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, product_id))
+        return True
+    except Exception as e: 
+        print(f"Mal yeniləmə xətası: {e}")
+        return False
+def get_all_products():
+    sql = "SELECT p.*, s.name as supplier_name, c.name as category_name FROM products p LEFT JOIN suppliers s ON p.supplier_id = s.id LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.name;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+                cur.execute(sql); return cur.fetchall()
+    except Exception as e: print(f"Məhsulları alarkən xəta: {e}"); return []
 
 def add_customer(name, phone, address):
     sql = "INSERT INTO customers(name, phone, address) VALUES(%s, %s, %s)"

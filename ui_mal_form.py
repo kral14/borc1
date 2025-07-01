@@ -11,8 +11,6 @@ class Ui_MalForm(object):
             QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox {
                 background-color: #555555; border: 1px solid #666666; padding: 5px; border-radius: 5px; font-size: 11pt;
             }
-            QComboBox::drop-down { border: none; }
-            QComboBox::down-arrow { image: url(down_arrow.png); } /* Gələcəkdə ikon əlavə etmək olar */
             QPushButton {
                 color: white; background-color: #007BFF; border: 1px solid #666666;
                 padding: 8px; border-radius: 8px; font-size: 11pt; font-weight: bold;
@@ -24,6 +22,7 @@ class Ui_MalForm(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(MalForm)
         self.formLayout = QtWidgets.QFormLayout()
         
+        # ... (name, barcode olduğu kimi qalır) ...
         self.label_name = QtWidgets.QLabel("Malın Adı:", MalForm)
         self.edit_name = QtWidgets.QLineEdit(MalForm)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_name)
@@ -34,16 +33,18 @@ class Ui_MalForm(object):
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_barcode)
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.edit_barcode)
 
-        self.label_category = QtWidgets.QLabel("Cinsi/Kateqoriyası:", MalForm)
-        self.edit_category = QtWidgets.QLineEdit(MalForm)
+        # YENİ DƏYİŞİKLİK: Kateqoriya üçün QComboBox
+        self.label_category = QtWidgets.QLabel("Kateqoriyası/Qovluğu:", MalForm)
+        self.combo_category = QtWidgets.QComboBox(MalForm)
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_category)
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.FieldRole, self.edit_category)
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.FieldRole, self.combo_category)
 
         self.label_supplier = QtWidgets.QLabel("Alındığı Yer (Satıcı):", MalForm)
         self.combo_supplier = QtWidgets.QComboBox(MalForm)
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_supplier)
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.combo_supplier)
 
+        # ... (qalan bütün hissələr olduğu kimi qalır) ...
         self.label_code = QtWidgets.QLabel("Kodu:", MalForm)
         self.edit_code = QtWidgets.QLineEdit(MalForm)
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_code)
