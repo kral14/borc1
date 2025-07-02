@@ -27,14 +27,13 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 def main():
-    # Proqram başlarkən cədvəllərin mövcudluğunu yoxla və yarat
     print("Verilənlər bazası cədvəlləri yoxlanılır...")
-    database.create_tables()
+    database.create_tables() # Paketdən funksiyanı çağırırıq
     print("Yoxlama tamamlandı.")
     
     app = QApplication(sys.argv)
     window = MainAppWindow()
-    window.showMaximized() # Pəncərənin böyük açılması üçün
+    window.showMaximized()
     sys.exit(app.exec())
 
 if __name__ == '__main__':
