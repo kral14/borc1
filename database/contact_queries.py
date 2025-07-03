@@ -46,9 +46,17 @@ def get_customer_by_id(customer_id):
     except Exception as e:
         logger.log(f"XƏTA: ID {customer_id} olan müştərini alarkən xəta: {e}")
         return None
-
 def get_all_customers_with_debt():
-    sql = "SELECT c.id, c.name, c.phone, c.address, c.is_active, COALESCE(SUM(i.total_amount) FILTER (WHERE i.is_paid = FALSE AND i.is_active = TRUE), 0) as total_debt FROM customers c LEFT JOIN sales_invoices i ON c.id = i.customer_id GROUP BY c.id ORDER BY c.name;"
+    # DÜZƏLİŞ: Borc hesablanarkən total_amount-dan paid_amount çıxılır
+    sql = """
+        SELECT 
+            c.id, c.name, c.phone, c.address, c.is_active, 
+            COALESCE(SUM(i.total_amount - i.paid_amount), 0) as total_debt 
+        FROM customers c 
+        LEFT JOIN sales_invoices i ON c.id = i.customer_id AND i.is_paid = FALSE AND i.is_active = TRUE
+        GROUP BY c.id 
+        ORDER BY c.name;
+    """
     try:
         with get_db_connection() as conn, conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(sql)
@@ -56,7 +64,6 @@ def get_all_customers_with_debt():
     except Exception as e:
         logger.log(f"XƏTA: Müştəriləri borcları ilə birgə alarkən xəta: {e}")
         return []
-
 # --- SATICI FUNKSİYALARI ---
 def add_supplier(name, contact_person, phone, address):
     sql = "INSERT INTO suppliers(name, contact_person, phone, address) VALUES(%s, %s, %s, %s)"
@@ -101,7 +108,16 @@ def get_supplier_by_id(supplier_id):
         return None
         
 def get_all_suppliers():
-    sql = "SELECT s.id, s.name, s.contact_person, s.phone, s.address, COALESCE(SUM(pi.total_amount) FILTER (WHERE pi.is_paid = FALSE AND pi.is_active = TRUE), 0) as total_debt FROM suppliers s LEFT JOIN purchase_invoices pi ON s.id = pi.supplier_id GROUP BY s.id ORDER BY s.name;"
+    # DÜZƏLİŞ: Bizim borcumuz hesablanarkən total_amount-dan paid_amount çıxılır
+    sql = """
+        SELECT 
+            s.id, s.name, s.contact_person, s.phone, s.address, 
+            COALESCE(SUM(pi.total_amount - pi.paid_amount), 0) as total_debt 
+        FROM suppliers s 
+        LEFT JOIN purchase_invoices pi ON s.id = pi.supplier_id AND pi.is_paid = FALSE AND pi.is_active = TRUE
+        GROUP BY s.id 
+        ORDER BY s.name;
+    """
     try:
         with get_db_connection() as conn, conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             cur.execute(sql)
