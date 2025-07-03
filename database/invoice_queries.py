@@ -252,3 +252,23 @@ def get_next_sales_invoice_number():
     except Exception:
         year = datetime.date.today().year
         return f"SQ-{year}-1"
+def check_products_on_sales_invoices(purchase_invoice_id):
+    """
+    Alış qaiməsindəki məhsullardan hər hansı birinin satılıb-satılmadığını yoxlayır.
+    Satılmış məhsulların adlarını siyahı şəklində qaytarır.
+    """
+    sql = """
+        SELECT DISTINCT p.name
+        FROM products p
+        JOIN purchase_invoice_items pii ON p.id = pii.product_id
+        JOIN sales_invoice_items sii ON p.id = sii.product_id
+        WHERE pii.purchase_invoice_id = %s;
+    """
+    try:
+        with get_db_connection() as conn, conn.cursor() as cur:
+            cur.execute(sql, (purchase_invoice_id,))
+            results = cur.fetchall()
+            return [row[0] for row in results]
+    except Exception as e:
+        logger.log(f"XƏTA: Satılmış məhsulları yoxlayarkən xəta: {e}")
+        return [] # Xəta baş verərsə, təhlükəsizlik üçün boş siyahı qaytar

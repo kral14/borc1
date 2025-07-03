@@ -1,7 +1,7 @@
 # database/__init__.py
 
 from .config import get_db_connection
-from .schema import create_tables
+from .schema import create_tables, create_indexes
 
 from .product_queries import (
     add_product,
@@ -15,6 +15,8 @@ from .product_queries import (
     delete_category,
     get_custom_field_definitions,
     add_custom_field_definition,
+    update_custom_field_definition,
+    toggle_custom_field_active_status,
     delete_custom_field_definition
 )
 
@@ -47,15 +49,14 @@ from .invoice_queries import (
     toggle_sales_invoice_status,
     get_next_sales_invoice_number
 )
-# database/__init__.py faylına əlavə edin
 
-# ... digər importların sonuna ...
 from .payment_queries import (
     get_unpaid_invoices_for_customer,
     add_customer_payment,
     get_all_payments,
-    # --- YENİ FUNKSİYALAR ---
+    delete_customer_payment,
     get_unpaid_purchase_invoices_for_supplier,
     add_supplier_payment,
-    get_all_cash_expenses
+    get_all_cash_expenses,
+    delete_supplier_payment
 )

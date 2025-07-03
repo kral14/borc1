@@ -6,39 +6,55 @@ from .config import get_db_connection
 from app_logger import logger
 
 # --- MƏHSUL FUNKSİYALARI ---
-def add_product(name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes):
+def add_product(name, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes,
+                is_food_product, pieces_in_box, pieces_in_block, barcode_unit, barcode_box, barcode_block,
+                unit_of_measure, production_date, expiry_date, warehouse_location, shelf_location, row_location):
     custom_attributes_json = json.dumps(custom_attributes) if custom_attributes else None
     sql = """
         INSERT INTO products 
-        (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        (name, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes,
+         is_food_product, pieces_in_box, pieces_in_block, barcode_unit, barcode_box, barcode_block,
+         unit_of_measure, production_date, expiry_date, warehouse_location, shelf_location, row_location) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     try:
         with get_db_connection() as conn, conn.cursor() as cur:
-            cur.execute(sql, (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes_json))
+            cur.execute(sql, (
+                name, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes_json,
+                is_food_product, pieces_in_box, pieces_in_block, barcode_unit, barcode_box, barcode_block,
+                unit_of_measure, production_date, expiry_date, warehouse_location, shelf_location, row_location
+            ))
         logger.log(f"Yeni məhsul əlavə edildi: {name}")
         return True
     except Exception as e: 
         logger.log(f"XƏTA: Məhsul əlavə edilmədi: {e}")
         return False
 
-def update_product(product_id, name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes):
+def update_product(product_id, name, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes,
+                   is_food_product, pieces_in_box, pieces_in_block, barcode_unit, barcode_box, barcode_block,
+                   unit_of_measure, production_date, expiry_date, warehouse_location, shelf_location, row_location):
     custom_attributes_json = json.dumps(custom_attributes) if custom_attributes else None
     sql = """
         UPDATE products SET 
-        name=%s, barcode=%s, product_code=%s, article=%s, category_id=%s, supplier_id=%s, 
-        purchase_price=%s, sale_price=%s, stock=%s, custom_attributes=%s
+        name=%s, product_code=%s, article=%s, category_id=%s, supplier_id=%s, 
+        purchase_price=%s, sale_price=%s, stock=%s, custom_attributes=%s,
+        is_food_product=%s, pieces_in_box=%s, pieces_in_block=%s, barcode_unit=%s, barcode_box=%s, barcode_block=%s,
+        unit_of_measure=%s, production_date=%s, expiry_date=%s, warehouse_location=%s, shelf_location=%s, row_location=%s
         WHERE id=%s
     """
     try:
         with get_db_connection() as conn, conn.cursor() as cur:
-            cur.execute(sql, (name, barcode, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes_json, product_id))
+            cur.execute(sql, (
+                name, product_code, article, category_id, supplier_id, purchase_price, sale_price, stock, custom_attributes_json,
+                is_food_product, pieces_in_box, pieces_in_block, barcode_unit, barcode_box, barcode_block,
+                unit_of_measure, production_date, expiry_date, warehouse_location, shelf_location, row_location,
+                product_id
+            ))
         logger.log(f"Məhsul məlumatları yeniləndi (ID: {product_id}): {name}")
         return True
     except Exception as e: 
         logger.log(f"XƏTA: Məhsul yenilənmədi (ID: {product_id}): {e}")
         return False
-
 def get_all_products():
     sql = "SELECT p.*, s.name as supplier_name, c.name as category_name FROM products p LEFT JOIN suppliers s ON p.supplier_id = s.id LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.name;"
     try:
@@ -52,6 +68,7 @@ def get_all_products():
 def get_product_by_id(product_id):
     try:
         with get_db_connection() as conn, conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            # Bütün yeni sütunları da sorğuya əlavə edirik
             cur.execute("SELECT * FROM products WHERE id = %s", (product_id,))
             return cur.fetchone()
     except Exception as e:

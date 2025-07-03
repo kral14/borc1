@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QTableWidget, QTableWidgetIte
                              QCheckBox, QWidget, QSpacerItem, QSizePolicy, QListWidget,
                              QDialogButtonBox, QLabel, QMessageBox)
 from PyQt6.QtCore import Qt, QSettings
-
+from app_logger import logger # Faylın başına logger importunu əlavə edin
 class AddColumnDialog(QDialog):
     def __init__(self, available_columns, parent=None):
         super().__init__(parent)
@@ -209,6 +209,80 @@ class ColumnSettingsDialog(QDialog):
         return True
 
 def load_table_settings(table_widget, settings_group, master_list):
+    settings = QSettings("MySoft", "BorcIzlemeApp")
+    column_settings = settings.value(f"{settings_group}/columns", [])
+
+    # YENİ VƏ TƏKMİL YOXLAMA MƏNTİQİ
+    is_valid = True
+    if not isinstance(column_settings, list) or not column_settings:
+        is_valid = False
+    else:
+        master_keys = {item['key'] for item in master_list}
+        for item in column_settings:
+            # Yaddaşdakı hər bir sütunun açar sözünün mövcud proqram kodunda olub-olmadığını yoxlayırıq
+            if not isinstance(item, dict) or 'key' not in item or 'visual_index' not in item or item.get('key') not in master_keys:
+                is_valid = False
+                logger.log(f"Köhnəlmiş sütun ayarı tapıldı: '{item.get('key')}'. '{settings_group}' cədvəli standart ayarlara sıfırlanır.")
+                break
+    
+    if not is_valid:
+        # Ayarlar etibarsız və ya köhnədirsə, standart ayarları yenidən qururuq
+        settings.remove(f"{settings_group}/columns") # Köhnə ayarları tamamilə sil
+        default_settings = []
+        visual_index = 0
+        for col_data in master_list:
+            if col_data.get('default_visible', True):
+                default_settings.append({
+                    'key': col_data['key'], 'visible': True,
+                    'width': col_data.get('default_width', 100),
+                    'auto_width': False, 'locked': False, 'sortable': True,
+                    'visual_index': visual_index
+                })
+                visual_index += 1
+        column_settings = default_settings
+        settings.setValue(f"{settings_group}/columns", column_settings)
+
+    visible_columns = [s for s in column_settings if s.get('visible', True)]
+    visible_columns.sort(key=lambda x: x.get('visual_index', 999))
+
+    table_widget.setColumnCount(len(visible_columns))
+    
+    header_labels = []
+    column_map = {}
+    header = table_widget.horizontalHeader()
+
+    for visual_index, setting in enumerate(visible_columns):
+        key = setting['key']
+        master_data = next((item for item in master_list if item['key'] == key), None)
+        if not master_data:
+            continue
+        
+        header_labels.append(master_data['header'])
+        column_map[key] = visual_index
+
+        if setting.get('auto_width', False):
+             header.setSectionResizeMode(visual_index, QHeaderView.ResizeMode.ResizeToContents)
+        else:
+            header.setSectionResizeMode(visual_index, QHeaderView.ResizeMode.Interactive)
+            table_widget.setColumnWidth(visual_index, setting.get('width', 100))
+        
+        if setting.get('locked', False):
+            header.setSectionResizeMode(visual_index, QHeaderView.ResizeMode.Fixed)
+
+    table_widget.setHorizontalHeaderLabels(header_labels)
+
+    from custom_header import CustomHeaderView
+    if isinstance(header, CustomHeaderView):
+        sortable_indices = []
+        for visual_index, setting in enumerate(visible_columns):
+             if setting.get('sortable', True):
+                 sortable_indices.append(visual_index)
+        
+        header.set_sortable_columns(sortable_indices)
+    
+    table_widget.setSortingEnabled(True)
+    
+    return column_map
     settings = QSettings("MySoft", "BorcIzlemeApp")
     column_settings = settings.value(f"{settings_group}/columns", [])
 

@@ -1,20 +1,19 @@
 # main.py
+
 import sys
 from PyQt6.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtGui import QIcon
 import traceback
 from main_app_window import MainAppWindow
 import database
 
-# --- YENI: Proqramın çökməsinin qarşısını alan funksiya ---
 def handle_exception(exc_type, exc_value, exc_traceback):
     """
     Bu funksiya tutulmamış bütün xətaları idarə edir.
     Proqramın çökməsi əvəzinə ekranda xəta mesajı göstərir.
     """
-    # Xətanın detallarını formatlaşdırır
     error_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
     
-    # İstifadəçiyə göstəriləcək pəncərə
     msg_box = QMessageBox()
     msg_box.setIcon(QMessageBox.Icon.Critical)
     msg_box.setText("Gözlənilməyən xəta baş verdi!")
@@ -23,15 +22,18 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
     msg_box.exec()
 
-# Xəta idarəetmə funksiyasını sistemə bağlayır
 sys.excepthook = handle_exception
 
 def main():
-    print("Verilənlər bazası cədvəlləri yoxlanılır...")
-    database.create_tables() # Paketdən funksiyanı çağırırıq
+    app = QApplication(sys.argv)
+    app.setApplicationName("AnbarSmarte")
+    app.setWindowIcon(QIcon("./icons/app_icon.png"))
+
+    print("Verilənlər bazası yoxlanılır...")
+    database.create_tables()
+    database.create_indexes() # Verilənlər bazası indekslərini yaradır/yoxlayır
     print("Yoxlama tamamlandı.")
     
-    app = QApplication(sys.argv)
     window = MainAppWindow()
     window.showMaximized()
     sys.exit(app.exec())

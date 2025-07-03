@@ -73,40 +73,84 @@ class NumericTableWidgetItem(QTableWidgetItem):
         except (ValueError, TypeError): return super().__lt__(other)
 
 
+# app_alis_qaime_widget.py faylına aid sinif
+
 class AlisQaimeListWidget(QWidget):
-    add_invoice_requested = pyqtSignal(); view_invoice_requested = pyqtSignal(int); edit_invoice_requested = pyqtSignal(int)
+    add_invoice_requested = pyqtSignal()
+    view_invoice_requested = pyqtSignal(int)
+    edit_invoice_requested = pyqtSignal(int)
     
     def __init__(self):
         super().__init__()
         self._search_target_column = None
         self._default_search_placeholder = "Qaimə №, satıcı, qeyd və ya məbləğə görə axtar..."
         
-        layout = QVBoxLayout(self); layout.setContentsMargins(5, 5, 5, 5); layout.setSpacing(10)
-        toolbar = QToolBar("Alış Qaiməsi Əməliyyatları"); toolbar.setIconSize(QSize(32, 32)); toolbar.setStyleSheet("QToolBar { border: none; }"); layout.addWidget(toolbar)
-        style = self.style(); action_add = QAction(style.standardIcon(QStyle.StandardPixmap.SP_FileIcon), "Yeni Qaimə", self)
-        action_edit = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton), "Düzəliş Et", self); action_view = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DesktopIcon), "Bax", self)
-        action_delete = QAction(style.standardIcon(QStyle.StandardPixmap.SP_TrashIcon), "Sil", self); action_toggle_active = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton), "Aktiv/Deaktiv", self)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+        toolbar = QToolBar("Alış Qaiməsi Əməliyyatları")
+        toolbar.setIconSize(QSize(32, 32))
+        toolbar.setStyleSheet("QToolBar { border: none; }")
+        layout.addWidget(toolbar)
+
+        style = self.style()
+        action_add = QAction(style.standardIcon(QStyle.StandardPixmap.SP_FileIcon), "Yeni Qaimə", self)
+        action_edit = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton), "Düzəliş Et", self)
+        action_view = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DesktopIcon), "Bax", self)
+        action_delete = QAction(style.standardIcon(QStyle.StandardPixmap.SP_TrashIcon), "Sil", self)
+        action_toggle_active = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton), "Aktiv/Deaktiv", self)
+        
         for action in [action_add, action_edit, action_view, action_delete, action_toggle_active]:
-            tool_button = QToolButton(); tool_button.setDefaultAction(action); tool_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+            tool_button = QToolButton()
+            tool_button.setDefaultAction(action)
+            tool_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
             tool_button.setStyleSheet("QToolButton{padding:5px;border:1px solid transparent;border-radius:5px} QToolButton:hover{background-color:#555555;border:1px solid #666666}")
             toolbar.addWidget(tool_button)
-        spacer = QWidget(); spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred); toolbar.addWidget(spacer)
-        label_filter = QLabel(" Axtar: "); label_filter.setStyleSheet("font-weight: bold; font-size: 11pt;"); self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText(self._default_search_placeholder); self.search_box.setClearButtonEnabled(True)
-        self.search_box.setMinimumWidth(300); self.search_box.setStyleSheet("padding: 5px; border-radius: 5px; background-color: #555555; border: 1px solid #666666;")
-        self.search_box.textChanged.connect(self.on_search_text_changed); toolbar.addWidget(label_filter); toolbar.addWidget(self.search_box)
-        self.table_widget = QTableWidget(); layout.addWidget(self.table_widget)
+
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        toolbar.addWidget(spacer)
+
+        label_filter = QLabel(" Axtar: ")
+        label_filter.setStyleSheet("font-weight: bold; font-size: 11pt;")
+        
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText(self._default_search_placeholder)
+        self.search_box.setClearButtonEnabled(True)
+        self.search_box.setMinimumWidth(350)
+        self.search_box.setStyleSheet("padding: 5px; border-radius: 5px; background-color: #555555; border: 1px solid #666666;")
+        self.search_box.textChanged.connect(self.on_search_text_changed)
+        
+        toolbar.addWidget(label_filter)
+        toolbar.addWidget(self.search_box)
+        
+        self.table_widget = QTableWidget()
+        layout.addWidget(self.table_widget)
+        
         self.table_widget.itemDoubleClicked.connect(self.double_click_edit_invoice)
-        self.table_widget.setSortingEnabled(True); self.table_widget.setColumnCount(9); self.table_widget.setHorizontalHeaderLabels(["ID", "Qaimə №", "Satıcı", "Tarix", "Son Ödəmə", "Qalan Gün", "Qeyd", "Yekun Məbləğ", "Status"])
-        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows); self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table_widget.setAlternatingRowColors(True); header = self.table_widget.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive); self.table_widget.resizeColumnsToContents()
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch); header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        self.table_widget.setSortingEnabled(True)
+        self.table_widget.setColumnCount(9)
+        self.table_widget.setHorizontalHeaderLabels(["ID", "Qaimə №", "Satıcı", "Tarix", "Son Ödəmə", "Qalan Gün", "Qeyd", "Yekun Məbləğ", "Status"])
+        self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table_widget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_widget.setAlternatingRowColors(True)
+        
+        header = self.table_widget.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        self.table_widget.resizeColumnsToContents()
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        
         self.table_widget.setStyleSheet("QTableWidget { background-color: #3C3C3C; alternate-background-color: #464646; gridline-color: #5A5A5A; color: #FFFFFF; border: 1px solid #5A5A5A; font-size: 11pt; } QTableWidget::item { padding: 5px; } QHeaderView::section { background-color: #555555; color: #FFFFFF; padding: 5px; border: 1px solid #666666; font-weight: bold; } QTableWidget::item:selected { background-color: #007BFF; color: white; }")
         self.table_widget.hideColumn(0)
-        action_add.triggered.connect(self.add_invoice_requested.emit); action_edit.triggered.connect(self.edit_invoice)
-        action_view.triggered.connect(self.view_invoice); action_delete.triggered.connect(self.delete_invoice)
-        action_toggle_active.triggered.connect(self.toggle_active_status); self.load_invoices()
+        
+        action_add.triggered.connect(self.add_invoice_requested.emit)
+        action_edit.triggered.connect(self.edit_invoice)
+        action_view.triggered.connect(self.view_invoice)
+        action_delete.triggered.connect(self.delete_invoice)
+        action_toggle_active.triggered.connect(self.toggle_active_status)
+        
+        self.load_invoices()
         self.setup_shortcuts()
 
     def setup_shortcuts(self):
@@ -147,59 +191,119 @@ class AlisQaimeListWidget(QWidget):
             self.table_widget.setRowHidden(row, not match)
 
     def load_invoices(self):
-        self.search_box.clear(); self.table_widget.setSortingEnabled(False); self.table_widget.setRowCount(0)
+        self.search_box.clear()
+        self.table_widget.setSortingEnabled(False)
+        self.table_widget.setRowCount(0)
         invoices = database.get_all_purchase_invoices()
-        if not invoices: self.table_widget.setSortingEnabled(True); return
+        if not invoices:
+            self.table_widget.setSortingEnabled(True)
+            return
         today = datetime.date.today()
         for row, inv in enumerate(invoices):
-            self.table_widget.insertRow(row); due_date = inv.get('due_date'); days_left_item = QTableWidgetItem()
+            self.table_widget.insertRow(row)
+            due_date = inv.get('due_date')
+            days_left_item = QTableWidgetItem()
             days_left_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if due_date and not inv.get('is_paid', True):
-                delta = due_date - today; days_left = delta.days; days_left_item.setText(str(days_left))
-                if days_left < 0: days_left_item.setBackground(QColor('#a22222')); days_left_item.setForeground(QColor('white'))
-                elif days_left <= 3: days_left_item.setBackground(QColor('#c89619'))
-                else: days_left_item.setBackground(QColor('#227022'))
-            else: days_left_item.setText("-")
-            total_amount = inv.get('total_amount', 0); amount_item = NumericTableWidgetItem(f"{total_amount:.2f} AZN")
-            amount_item.setData(Qt.ItemDataRole.UserRole, total_amount); amount_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                delta = due_date - today
+                days_left = delta.days
+                days_left_item.setText(str(days_left))
+                if days_left < 0:
+                    days_left_item.setBackground(QColor('#a22222'))
+                    days_left_item.setForeground(QColor('white'))
+                elif days_left <= 3:
+                    days_left_item.setBackground(QColor('#c89619'))
+                else:
+                    days_left_item.setBackground(QColor('#227022'))
+            else:
+                days_left_item.setText("-")
+            total_amount = inv.get('total_amount', 0)
+            amount_item = NumericTableWidgetItem(f"{total_amount:.2f} AZN")
+            amount_item.setData(Qt.ItemDataRole.UserRole, total_amount)
+            amount_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             status = "Ödənilib" if inv.get('is_paid', False) else "Ödənilməyib"
-            self.table_widget.setItem(row, 0, QTableWidgetItem(str(inv['id']))); self.table_widget.setItem(row, 1, QTableWidgetItem(inv['invoice_number']))
-            self.table_widget.setItem(row, 2, QTableWidgetItem(inv['supplier_name'])); self.table_widget.setItem(row, 3, QTableWidgetItem(inv['invoice_date'].strftime('%d-%m-%Y')))
-            self.table_widget.setItem(row, 4, QTableWidgetItem(due_date.strftime('%d-%m-%Y') if due_date else "-")); self.table_widget.setItem(row, 5, days_left_item)
-            self.table_widget.setItem(row, 6, QTableWidgetItem(inv.get('notes', ''))); self.table_widget.setItem(row, 7, amount_item); self.table_widget.setItem(row, 8, QTableWidgetItem(status))
+            self.table_widget.setItem(row, 0, QTableWidgetItem(str(inv['id'])))
+            self.table_widget.setItem(row, 1, QTableWidgetItem(inv['invoice_number']))
+            self.table_widget.setItem(row, 2, QTableWidgetItem(inv['supplier_name']))
+            self.table_widget.setItem(row, 3, QTableWidgetItem(inv['invoice_date'].strftime('%d-%m-%Y')))
+            self.table_widget.setItem(row, 4, QTableWidgetItem(due_date.strftime('%d-%m-%Y') if due_date else "-"))
+            self.table_widget.setItem(row, 5, days_left_item)
+            self.table_widget.setItem(row, 6, QTableWidgetItem(inv.get('notes', '')))
+            self.table_widget.setItem(row, 7, amount_item)
+            self.table_widget.setItem(row, 8, QTableWidgetItem(status))
             if not inv.get('is_active', True):
-                font = QFont(); font.setItalic(True)
+                font = QFont()
+                font.setItalic(True)
                 for col in range(1, 9):
                     item = self.table_widget.item(row, col)
-                    if item: item.setFont(font); item.setForeground(QColor('gray'))
-        self.table_widget.setSortingEnabled(True); self.table_widget.resizeColumnsToContents()
+                    if item:
+                        item.setFont(font)
+                        item.setForeground(QColor('gray'))
+        self.table_widget.setSortingEnabled(True)
+        self.table_widget.resizeColumnsToContents()
 
     def get_selected_invoice_id(self):
-        selected_row = self.table_widget.currentRow();
-        if selected_row < 0: return None
+        selected_row = self.table_widget.currentRow()
+        if selected_row < 0:
+            return None
         return int(self.table_widget.item(selected_row, 0).text())
+
     def view_invoice(self):
         invoice_id = self.get_selected_invoice_id()
-        if invoice_id: self.view_invoice_requested.emit(invoice_id)
-        else: QMessageBox.warning(self, "Xəbərdarlıq", "Baxmaq üçün bir qaimə seçin.")
+        if invoice_id:
+            self.view_invoice_requested.emit(invoice_id)
+        else:
+            QMessageBox.warning(self, "Xəbərdarlıq", "Baxmaq üçün bir qaimə seçin.")
+
     def edit_invoice(self):
         invoice_id = self.get_selected_invoice_id()
-        if invoice_id: self.edit_invoice_requested.emit(invoice_id)
-        else: QMessageBox.warning(self, "Xəbərdarlıq", "Düzəliş etmək üçün bir qaimə seçin.")
-    def double_click_edit_invoice(self, item): self.edit_invoice()
+        if invoice_id:
+            self.edit_invoice_requested.emit(invoice_id)
+        else:
+            QMessageBox.warning(self, "Xəbərdarlıq", "Düzəliş etmək üçün bir qaimə seçin.")
+
+    def double_click_edit_invoice(self, item):
+        self.edit_invoice()
+
     def delete_invoice(self):
         invoice_id = self.get_selected_invoice_id()
-        if not invoice_id: QMessageBox.warning(self, "Xəbərdarlıq", "Silmək üçün bir qaimə seçin."); return
-        reply = QMessageBox.question(self, 'Silməni Təsdiqlə', "Bu əməliyyat geri qaytarılmır və stoklar geri azaldılacaq!\nƏminsinizmi?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if not invoice_id:
+            QMessageBox.warning(self, "Xəbərdarlıq", "Silmək üçün bir qaimə seçin.")
+            return
+
+        sold_products = database.check_products_on_sales_invoices(invoice_id)
+        warning_message = "Bu əməliyyat geri qaytarılmır və stoklar geri azaldılacaq!\nƏminsinizmi?"
+
+        if sold_products:
+            products_str = ", ".join(sold_products)
+            warning_message = (
+                f"DİQQƏT! Bu alış qaiməsindəki bəzi mallar ({products_str}) artıq satılıb.\n\n"
+                "Bu qaiməni silsəniz, satış analizləri və anbar qalığı hesabatları səhv nəticələr göstərə bilər.\n\n"
+                "Yenə də silməyə əminsinizmi?"
+            )
+
+        reply = QMessageBox.question(self, 'Silməni Təsdiqlə',
+                                     warning_message,
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                     QMessageBox.StandardButton.No)
+
         if reply == QMessageBox.StandardButton.Yes:
-            if database.delete_purchase_invoice(invoice_id): self.load_invoices(); QMessageBox.information(self, "Uğurlu", "Qaimə silindi.")
-            else: QMessageBox.critical(self, "Xəta", "Qaiməni silmək mümkün olmadı.")
+            if database.delete_purchase_invoice(invoice_id):
+                self.load_invoices()
+                QMessageBox.information(self, "Uğurlu", "Qaimə silindi.")
+            else:
+                QMessageBox.critical(self, "Xəta", "Qaiməni silmək mümkün olmadı.")
+
     def toggle_active_status(self):
         invoice_id = self.get_selected_invoice_id()
-        if not invoice_id: QMessageBox.warning(self, "Xəbərdarlıq", "Statusunu dəyişmək üçün bir qaimə seçin."); return
-        if database.toggle_purchase_invoice_status(invoice_id): self.load_invoices(); QMessageBox.information(self, "Uğurlu", "Qaimə statusu dəyişdirildi.")
-        else: QMessageBox.critical(self, "Xəta", "Statusu dəyişmək mümkün olmadı.")
-
+        if not invoice_id:
+            QMessageBox.warning(self, "Xəbərdarlıq", "Statusunu dəyişmək üçün bir qaimə seçin.")
+            return
+        if database.toggle_purchase_invoice_status(invoice_id):
+            self.load_invoices()
+            QMessageBox.information(self, "Uğurlu", "Qaimə statusu dəyişdirildi.")
+        else:
+            QMessageBox.critical(self, "Xəta", "Statusu dəyişmək mümkün olmadı.")
 
 class AlisQaimeFormWidget(QWidget):
     form_closed = pyqtSignal()
