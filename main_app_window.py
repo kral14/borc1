@@ -1,10 +1,10 @@
-# main_app_window.py (Bütün girinti və təyin etmə xətaları üçün düzəlişlərlə)
+# borc/main_app_window.py
 
 from PyQt6.QtWidgets import (QMainWindow, QMenu, QWidget, QMdiArea, QVBoxLayout,
                              QToolBar, QToolButton, QHBoxLayout, QSizePolicy, QStyle,
-                             QMenuBar, QApplication, QLabel, QMdiSubWindow)
-from PyQt6.QtGui import QAction
-from PyQt6.QtCore import Qt, QSize, pyqtSignal, QTimer, QSettings, QRect
+                             QMenuBar, QApplication, QLabel, QMdiSubWindow, QMessageBox)
+from PyQt6.QtGui import QAction, QActionGroup, QIcon, QKeySequence
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QSettings, QRect
 
 from app_logger import logger
 from app_musteri_widget import MusteriManagerWidget
@@ -14,9 +14,9 @@ from app_alis_qaime_widget import AlisQaimeManagerWidget
 from app_satis_qaime_widget import SatisQaimeManagerWidget
 from logger_widget import LoggerWidget
 from app_custom_fields_widget import CustomFieldsManagerWidget
-# Kassa modulunu import edirik
 from app_kassa_medaxil_widget import KassaMedaxilManagerWidget
 from app_kassa_mexaric_widget import KassaMexaricManagerWidget
+import style_manager # YENİLƏNİB: Artıq yalnız style_manager istifadə olunur
 
 class UndockedWindow(QMainWindow):
     closing = pyqtSignal(object)
@@ -134,12 +134,10 @@ class MainAppWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
         top_panel = QWidget()
-        top_panel.setStyleSheet("QWidget { background-color: #2d2d30; border-bottom: 1px solid #000; }")
         top_panel_layout = QVBoxLayout(top_panel)
         top_panel_layout.setContentsMargins(0, 0, 0, 0)
         top_panel_layout.setSpacing(0)
         self.menu_bar = QMenuBar()
-        self.menu_bar.setStyleSheet(""" QMenuBar { background-color: #2d2d30; color: #ccc; } QMenuBar::item:selected { background-color: #3e3e42; } QMenu { background-color: #2d2d30; color: #ccc; border: 1px solid #000; } QMenu::item:selected { background-color: #007acc; } """)
         top_panel_layout.addWidget(self.menu_bar)
 
         self.mdi_area = QMdiArea()
@@ -151,7 +149,6 @@ class MainAppWindow(QMainWindow):
         top_panel_layout.addWidget(nav_bar)
 
         self.taskbar = QToolBar("Açıq Pəncərələr")
-        self.taskbar.setStyleSheet("QToolBar { background-color: #2d2d30; border-top: 1px solid #000; padding: 2px; spacing: 2px; }")
         self.taskbar.setIconSize(QSize(16,16))
 
         self.main_layout.addWidget(top_panel)
@@ -161,50 +158,20 @@ class MainAppWindow(QMainWindow):
 
     def create_top_navbar(self):
         nav_bar = QToolBar("Naviqasiya")
+        nav_bar.setObjectName("MainNavBar")
         nav_bar.setMovable(False)
         nav_bar.setFloatable(False)
-        nav_bar.setStyleSheet("QToolBar { background-color: #2d2d30; border: none; padding: 5px; }")
         
-        button_style = """
-            QToolButton { 
-                padding: 8px 18px; 
-                border: 1px solid #3e3e42; 
-                background-color: #3e3e42; 
-                border-radius: 4px; 
-                color: #ccc; 
-                font-weight: bold; 
-                margin-right: 5px; 
-            } 
-            QToolButton:hover { background-color: #4f4f53; } 
-            QToolButton:pressed { background-color: #007acc; } 
-            QToolButton:checked { background-color: #007acc; } 
-            QToolButton::menu-indicator { image: none; } 
-        """
-
-        btn_musteriler = QToolButton()
-        btn_musteriler.setText("Müştərilər")
-        btn_musteriler.setStyleSheet(button_style)
-        btn_musteriler.clicked.connect(lambda: self.open_section_window(MusteriManagerWidget, "Müştərilər"))
-        
-        btn_saticilar = QToolButton()
-        btn_saticilar.setText("Satıcılar")
-        btn_saticilar.setStyleSheet(button_style)
-        btn_saticilar.clicked.connect(lambda: self.open_section_window(SaticiManagerWidget, "Satıcılar"))
-        
-        btn_mallar = QToolButton()
-        btn_mallar.setText("Mallar")
-        btn_mallar.setStyleSheet(button_style)
-        btn_mallar.clicked.connect(lambda: self.open_section_window(MalManagerWidget, "Mallar"))
+        btn_musteriler = QToolButton(); btn_musteriler.setText("Müştərilər"); btn_musteriler.clicked.connect(lambda: self.open_section_window(MusteriManagerWidget, "Müştərilər"))
+        btn_saticilar = QToolButton(); btn_saticilar.setText("Satıcılar"); btn_saticilar.clicked.connect(lambda: self.open_section_window(SaticiManagerWidget, "Satıcılar"))
+        btn_mallar = QToolButton(); btn_mallar.setText("Mallar"); btn_mallar.clicked.connect(lambda: self.open_section_window(MalManagerWidget, "Mallar"))
         
         nav_bar.addWidget(btn_musteriler)
         nav_bar.addWidget(btn_saticilar)
         nav_bar.addWidget(btn_mallar)
         
-        btn_qaimeler = QToolButton()
-        btn_qaimeler.setText("Qaimələr")
-        btn_qaimeler.setStyleSheet(button_style)
+        btn_qaimeler = QToolButton(); btn_qaimeler.setText("Qaimələr")
         qaime_menu = QMenu(self)
-        qaime_menu.setStyleSheet(self.menu_bar.styleSheet())
         action_alis = qaime_menu.addAction("Alış Qaimələri")
         action_satis = qaime_menu.addAction("Satış Qaimələri")
         btn_qaimeler.setMenu(qaime_menu)
@@ -213,14 +180,10 @@ class MainAppWindow(QMainWindow):
         action_alis.triggered.connect(lambda: self.open_section_window(AlisQaimeManagerWidget, "Alış Qaimələri"))
         action_satis.triggered.connect(lambda: self.open_section_window(SatisQaimeManagerWidget, "Satış Qaimələri"))
 
-        btn_kassa = QToolButton()
-        btn_kassa.setText("Kassa")
-        btn_kassa.setStyleSheet(button_style)
+        btn_kassa = QToolButton(); btn_kassa.setText("Kassa")
         kassa_menu = QMenu(self)
-        kassa_menu.setStyleSheet(self.menu_bar.styleSheet())
         action_medaxil = kassa_menu.addAction("Kassa Mədaxil")
         action_mexaric = kassa_menu.addAction("Kassa Məxaric")
-        action_mexaric.setEnabled(True) 
         btn_kassa.setMenu(kassa_menu)
         btn_kassa.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         nav_bar.addWidget(btn_kassa)
@@ -231,9 +194,70 @@ class MainAppWindow(QMainWindow):
         return nav_bar
 
     def setup_menus(self):
-        view_menu = self.menu_bar.addMenu("Görünüş"); show_log_action = QAction("Log Pəncərəsini Göstər", self); show_log_action.triggered.connect(lambda: self.open_section_window(LoggerWidget, "Log Pəncərəsi")); view_menu.addAction(show_log_action)
-        window_menu = self.menu_bar.addMenu("Pəncərə"); cascade_action = QAction("Kaskad düzülüş", self); cascade_action.triggered.connect(self.mdi_area.cascadeSubWindows); window_menu.addAction(cascade_action); tile_action = QAction("Plitə düzülüş", self); tile_action.triggered.connect(self.mdi_area.tileSubWindows); window_menu.addAction(tile_action); window_menu.addSeparator(); close_all_action = QAction("Bütün pəncərələri bağla", self); close_all_action.triggered.connect(self.mdi_area.closeAllSubWindows); window_menu.addAction(close_all_action)
-        settings_menu = self.menu_bar.addMenu("Ayarlar"); custom_fields_action = QAction("Məhsul üçün Xüsusi Sahələr", self); custom_fields_action.triggered.connect(lambda: self.open_section_window(CustomFieldsManagerWidget, "Xüsusi Sahə Ayarları")); settings_menu.addAction(custom_fields_action)
+        view_menu = self.menu_bar.addMenu("Görünüş")
+        show_log_action = QAction("Log Pəncərəsini Göstər", self)
+        show_log_action.triggered.connect(lambda: self.open_section_window(LoggerWidget, "Log Pəncərəsi"))
+        view_menu.addAction(show_log_action)
+        view_menu.addSeparator()
+
+        zoom_menu = view_menu.addMenu("Miqyas")
+        zoom_action_group = QActionGroup(self)
+        zoom_action_group.setExclusive(True)
+        current_scale = style_manager.load_zoom_setting()
+        for name, scale in style_manager.ZOOM_LEVELS.items():
+            action = QAction(name, self, checkable=True)
+            action.setData(scale)
+            action.triggered.connect(self.change_zoom)
+            zoom_menu.addAction(action)
+            zoom_action_group.addAction(action)
+            if abs(scale - current_scale) < 0.01:
+                action.setChecked(True)
+        view_menu.addSeparator()
+
+        theme_action_group = QActionGroup(self)
+        theme_action_group.setExclusive(True)
+        dark_theme_action = QAction("Qara Tema", self, checkable=True)
+        dark_theme_action.triggered.connect(lambda: self.change_theme('dark'))
+        light_theme_action = QAction("Ağ Tema", self, checkable=True)
+        light_theme_action.triggered.connect(lambda: self.change_theme('light'))
+        theme_action_group.addAction(dark_theme_action)
+        theme_action_group.addAction(light_theme_action)
+        view_menu.addAction(dark_theme_action)
+        view_menu.addAction(light_theme_action)
+        current_theme = style_manager.load_theme_setting()
+        if current_theme == 'light':
+            light_theme_action.setChecked(True)
+        else:
+            dark_theme_action.setChecked(True)
+
+        window_menu = self.menu_bar.addMenu("Pəncərə")
+        cascade_action = QAction("Kaskad düzülüş", self)
+        cascade_action.triggered.connect(self.mdi_area.cascadeSubWindows)
+        window_menu.addAction(cascade_action)
+        tile_action = QAction("Plitə düzülüş", self)
+        tile_action.triggered.connect(self.mdi_area.tileSubWindows)
+        window_menu.addAction(tile_action)
+        window_menu.addSeparator()
+        close_all_action = QAction("Bütün pəncərələri bağla", self)
+        close_all_action.triggered.connect(self.mdi_area.closeAllSubWindows)
+        window_menu.addAction(close_all_action)
+
+        settings_menu = self.menu_bar.addMenu("Ayarlar")
+        custom_fields_action = QAction("Məhsul üçün Xüsusi Sahələr", self)
+        custom_fields_action.triggered.connect(lambda: self.open_section_window(CustomFieldsManagerWidget, "Xüsusi Sahə Ayarları"))
+        settings_menu.addAction(custom_fields_action)
+
+    def change_zoom(self):
+        action = self.sender()
+        if not action:
+            return
+        scale_factor = action.data()
+        style_manager.save_zoom_setting(scale_factor)
+        QMessageBox.information(self, "Miqyas Dəyişdirildi", "Seçdiyiniz yeni miqyasın tam tətbiq olunması üçün proqramı yenidən başladın.")
+
+    def change_theme(self, theme_name):
+        style_manager.save_theme_setting(theme_name)
+        style_manager.apply_app_style()
 
     def open_section_window(self, widget_class, title):
         sub_window = CustomSubWindow(widget_class, title)

@@ -1,4 +1,4 @@
-# main.py
+# borc/main.py (YENİLƏNMİŞ)
 
 import sys
 from PyQt6.QtWidgets import QApplication, QMessageBox
@@ -6,6 +6,7 @@ from PyQt6.QtGui import QIcon
 import traceback
 from main_app_window import MainAppWindow
 import database
+import style_manager
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     """
@@ -26,15 +27,23 @@ sys.excepthook = handle_exception
 
 def main():
     app = QApplication(sys.argv)
+    
+    style_manager.apply_app_style()
+
     app.setApplicationName("AnbarSmarte")
     app.setWindowIcon(QIcon("./icons/app_icon.png"))
 
     print("Verilənlər bazası yoxlanılır...")
     database.create_tables()
-    database.create_indexes() # Verilənlər bazası indekslərini yaradır/yoxlayır
+    database.create_indexes()
     print("Yoxlama tamamlandı.")
     
     window = MainAppWindow()
+    
+    # === YENİLİK BURADADIR ===
+    # Əsas pəncərəni qlobal olaraq əlçatan edirik
+    app.setProperty("main_window", window)
+    
     window.showMaximized()
     sys.exit(app.exec())
 

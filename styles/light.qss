@@ -1,0 +1,70 @@
+/* Ümumi Pəncərə stilləri */
+QMainWindow, QDialog {
+    background-color: #f0f0f0;
+}
+
+/* Mətn və etiketlər */
+QLabel, QCheckBox, QRadioButton {
+    color: #000000;
+}
+
+/* Mətn daxil etmə sahələri */
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+/* Düymələr */
+QPushButton {
+    background-color: #e0e0e0;
+    color: #000000;
+    border: 1px solid #cccccc;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #d0d0d0;
+}
+
+QPushButton:pressed {
+    background-color: #c0c0c0;
+}
+
+/* Cədvəllər */
+QTableView {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #cccccc;
+    gridline-color: #cccccc;
+}
+
+QHeaderView::section {
+    background-color: #e0e0e0;
+    color: #000000;
+    padding: 4px;
+    border: 1px solid #cccccc;
+}
+
+/* Menyu */
+QMenuBar {
+    background-color: #f0f0f0;
+    color: #000000;
+}
+
+QMenuBar::item:selected {
+    background-color: #d0d0d0;
+}
+
+QMenu {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #cccccc;
+}
+
+QMenu::item:selected {
+    background-color: #d0d0d0;
+}
