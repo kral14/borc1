@@ -2,7 +2,7 @@
 
 from PyQt6.QtWidgets import (QMainWindow, QMenu, QWidget, QMdiArea, QVBoxLayout,
                              QToolBar, QToolButton, QHBoxLayout, QSizePolicy, QStyle,
-                             QMenuBar, QApplication, QLabel, QMdiSubWindow, QMessageBox)
+                             QMenuBar, QApplication, QLabel, QMdiSubWindow, QMessageBox, QInputDialog)
 from PyQt6.QtGui import QAction, QActionGroup, QIcon, QKeySequence
 from PyQt6.QtCore import Qt, QSize, pyqtSignal, QSettings, QRect
 
@@ -16,7 +16,7 @@ from logger_widget import LoggerWidget
 from app_custom_fields_widget import CustomFieldsManagerWidget
 from app_kassa_medaxil_widget import KassaMedaxilManagerWidget
 from app_kassa_mexaric_widget import KassaMexaricManagerWidget
-import style_manager # YENİLƏNİB: Artıq yalnız style_manager istifadə olunur
+import style_manager
 
 class UndockedWindow(QMainWindow):
     closing = pyqtSignal(object)
@@ -122,10 +122,15 @@ class TaskbarButton(QWidget):
 
 
 class MainAppWindow(QMainWindow):
+    
+    # === DÜZƏLİŞ 1: Siqnal burada təyin olunmalıdır ===
+    settings_changed = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.window_map = {}
         self.undocked_windows = {}
+        self.zoom_action_group = QActionGroup(self)
         self.setup_main_layout()
 
     def setup_main_layout(self):
@@ -201,17 +206,20 @@ class MainAppWindow(QMainWindow):
         view_menu.addSeparator()
 
         zoom_menu = view_menu.addMenu("Miqyas")
-        zoom_action_group = QActionGroup(self)
-        zoom_action_group.setExclusive(True)
+        self.zoom_action_group.setExclusive(True)
         current_scale = style_manager.load_zoom_setting()
         for name, scale in style_manager.ZOOM_LEVELS.items():
             action = QAction(name, self, checkable=True)
             action.setData(scale)
             action.triggered.connect(self.change_zoom)
             zoom_menu.addAction(action)
-            zoom_action_group.addAction(action)
+            self.zoom_action_group.addAction(action)
             if abs(scale - current_scale) < 0.01:
                 action.setChecked(True)
+        zoom_menu.addSeparator()
+        custom_zoom_action = QAction("Fərdi Miqyas...", self)
+        custom_zoom_action.triggered.connect(self.set_custom_zoom)
+        zoom_menu.addAction(custom_zoom_action)
         view_menu.addSeparator()
 
         theme_action_group = QActionGroup(self)
@@ -247,17 +255,48 @@ class MainAppWindow(QMainWindow):
         custom_fields_action.triggered.connect(lambda: self.open_section_window(CustomFieldsManagerWidget, "Xüsusi Sahə Ayarları"))
         settings_menu.addAction(custom_fields_action)
 
-    def change_zoom(self):
-        action = self.sender()
-        if not action:
-            return
-        scale_factor = action.data()
+    def _apply_zoom_change(self, scale_factor):
+        """Miqyası dəyişmək üçün mərkəzi funksiya."""
         style_manager.save_zoom_setting(scale_factor)
-        QMessageBox.information(self, "Miqyas Dəyişdirildi", "Seçdiyiniz yeni miqyasın tam tətbiq olunması üçün proqramı yenidən başladın.")
+        style_manager.apply_app_style()
+        self.settings_changed.emit()
 
+    def update_zoom_menu_ticks(self):
+        """Hazırkı miqyasa uyğun menyu seçimini işarələyir."""
+        current_scale = style_manager.load_zoom_setting()
+        found_match = False
+        for action in self.zoom_action_group.actions():
+            if action.data() and abs(action.data() - current_scale) < 0.01:
+                action.setChecked(True)
+                found_match = True
+                break
+        if not found_match:
+            checked_action = self.zoom_action_group.checkedAction()
+            if checked_action:
+                self.zoom_action_group.setExclusive(False)
+                checked_action.setChecked(False)
+                self.zoom_action_group.setExclusive(True)
+
+    def set_custom_zoom(self):
+        current_scale_percent = int(style_manager.load_zoom_setting() * 100)
+        new_percent, ok = QInputDialog.getInt(self, "Fərdi Miqyas", "Miqyası faizlə daxil edin:", value=current_scale_percent, min=50, max=200, step=5)
+        if ok:
+            scale_factor = new_percent / 100.0
+            self._apply_zoom_change(scale_factor)
+            self.update_zoom_menu_ticks()
+
+    def change_zoom(self):
+        # === DÜZƏLİŞ 2: Metod siqnalı göndərən mərkəzi funksiyanı çağırır ===
+        action = self.sender()
+        if not action: return
+        scale_factor = action.data()
+        self._apply_zoom_change(scale_factor)
+        
     def change_theme(self, theme_name):
+        # === DÜZƏLİŞ 3: Tema dəyişdikdə də siqnal göndərilir ===
         style_manager.save_theme_setting(theme_name)
         style_manager.apply_app_style()
+        self.settings_changed.emit()
 
     def open_section_window(self, widget_class, title):
         sub_window = CustomSubWindow(widget_class, title)

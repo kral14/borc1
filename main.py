@@ -1,4 +1,4 @@
-# borc/main.py (YENİLƏNMİŞ)
+# borc/main.py
 
 import sys
 from PyQt6.QtWidgets import QApplication, QMessageBox
@@ -40,7 +40,6 @@ def main():
     
     window = MainAppWindow()
     
-    # === YENİLİK BURADADIR ===
     # Əsas pəncərəni qlobal olaraq əlçatan edirik
     app.setProperty("main_window", window)
     

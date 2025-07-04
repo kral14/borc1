@@ -1,18 +1,17 @@
-# app_musteri_widget.py (YENİLƏNMİŞ)
+# app_musteri_widget.py (YENİLƏNMİŞ VƏ SADƏLƏŞDİRİLMİŞ)
 
-from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QToolBar, QTableWidget, QTableWidgetItem, 
-                             QStackedWidget, QMessageBox, QAbstractItemView, QHeaderView, QStyle, QToolButton)
-from PyQt6.QtGui import QAction
-from PyQt6.QtCore import pyqtSignal, QSize, Qt
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, 
+                             QStackedWidget, QMessageBox, QAbstractItemView, QHeaderView)
+from PyQt6.QtCore import pyqtSignal, Qt
 import database
 from ui_musteri_form import Ui_MusteriForm
 import style_manager
 
-# MusteriFormWidget sinfi olduğu kimi qalır...
-class MusteriFormWidget(QWidget):
-    #... (içində dəyişiklik yoxdur)
-    form_closed = pyqtSignal()
+# YENİ İMPORT: Ümumi toolbar sinfimizi import edirik
+from app_common_widgets import GeneralToolbar
 
+class MusteriFormWidget(QWidget):
+    form_closed = pyqtSignal()
     def __init__(self):
         super().__init__()
         self.ui = Ui_MusteriForm()
@@ -20,7 +19,6 @@ class MusteriFormWidget(QWidget):
         self.current_customer_id = None
         self.ui.btn_save.clicked.connect(self.save_customer)
         self.ui.btn_cancel.clicked.connect(self.close_form)
-        
     def set_edit_mode(self, customer_id):
         self.current_customer_id = customer_id
         customer = database.get_customer_by_id(customer_id)
@@ -28,13 +26,11 @@ class MusteriFormWidget(QWidget):
             self.ui.edit_name.setText(customer['name'])
             self.ui.edit_phone.setText(customer['phone'])
             self.ui.edit_address.setText(customer['address'])
-
     def set_add_mode(self):
         self.current_customer_id = None
         self.ui.edit_name.clear()
         self.ui.edit_phone.clear()
         self.ui.edit_address.clear()
-
     def save_customer(self):
         name = self.ui.edit_name.text().strip()
         phone = self.ui.edit_phone.text().strip()
@@ -51,10 +47,8 @@ class MusteriFormWidget(QWidget):
             self.close_form()
         else:
             QMessageBox.critical(self, "Xəta", "Əməliyyat zamanı xəta baş verdi.")
-
     def close_form(self):
         self.form_closed.emit()
-
 
 class MusteriListWidget(QWidget):
     def __init__(self, stacked_widget, form_widget):
@@ -66,25 +60,14 @@ class MusteriListWidget(QWidget):
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
         
-        # Toolbarı self-də saxlayırıq ki, sonra ölçüsünü dəyişə bilək
-        self.toolbar = QToolBar("Müştəri Əməliyyatları")
+        # === DƏYİŞİKLİK 1: Yeni GeneralToolbar-ı yaradırıq ===
+        self.toolbar = GeneralToolbar(self)
         layout.addWidget(self.toolbar)
-        
-        style = self.style()
-        self.action_add = QAction(style.standardIcon(QStyle.StandardPixmap.SP_FileIcon), "Yeni Müştəri", self)
-        self.action_edit = QAction(style.standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton), "Düzəliş Et", self)
-        self.action_delete = QAction(style.standardIcon(QStyle.StandardPixmap.SP_TrashIcon), "Sil", self)
-        
-        for action in [self.action_add, self.action_edit, self.action_delete]:
-            tool_button = QToolButton()
-            tool_button.setDefaultAction(action)
-            tool_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-            self.toolbar.addWidget(tool_button)
 
+        # === DƏYİŞİKLİK 2: Köhnə, uzun toolbar yaratma kodları tamamilə silindi ===
+        
         self.table_widget = QTableWidget()
         layout.addWidget(self.table_widget)
-
-        # ... cədvəl parametrləri ...
         self.table_widget.setColumnCount(5)
         self.table_widget.setHorizontalHeaderLabels(["ID", "Ad, Soyad", "Telefon", "Ünvan", "Borc"])
         self.table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -96,30 +79,20 @@ class MusteriListWidget(QWidget):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.table_widget.hideColumn(0)
         
-        self.action_add.triggered.connect(self.add_new_customer)
-        self.action_edit.triggered.connect(self.edit_customer)
-        self.action_delete.triggered.connect(self.delete_customer)
+        # === DƏYİŞİKLİK 3: Siqnalları GeneralToolbar-ın hazır action-larına bağlayırıq ===
+        self.toolbar.action_add.triggered.connect(self.add_new_customer)
+        self.toolbar.action_edit.triggered.connect(self.edit_customer)
+        self.toolbar.action_delete.triggered.connect(self.delete_customer)
+        self.toolbar.action_refresh.triggered.connect(self.load_customers) # Yenilə düyməsini də bağlayırıq
         
         self.load_customers()
-        # Komponentləri ilk dəfə yaradanda ölçülərini təyin edirik
         self.apply_dynamic_styles()
 
     def apply_dynamic_styles(self):
-        """
-        Bu metod proqramın miqyasına uyğun olaraq, QSS ilə idarə olunmayan
-        elementləri (məsələn ikon ölçüsü) yeniləyir.
-        """
-        # === YENİLİK BURADADIR ===
-        base_icon_size = 24  # İkonun baza ölçüsü
-        self.toolbar.setIconSize(style_manager.get_scaled_icon_size(base_size=base_icon_size))
-        
-        # Gələcəkdə sətir hündürlüyü kimi digər elementləri də buradan idarə etmək olar
-        # base_row_height = 30
-        # scale = style_manager.load_zoom_setting()
-        # for row in range(self.table_widget.rowCount()):
-        #     self.table_widget.setRowHeight(row, int(base_row_height * scale))
+        # Bu metod artıq GeneralToolbar-ın özü tərəfindən idarə olunduğu üçün
+        # burada bir şey etməyə ehtiyac qalmır. Amma gələcəkdə lazım ola bilər deyə saxlayaq.
+        pass
 
-    # ... load_customers, add_new_customer, edit_customer, delete_customer metodları olduğu kimi qalır ...
     def load_customers(self):
         self.table_widget.setRowCount(0)
         try:
@@ -185,8 +158,6 @@ class MusteriManagerWidget(QWidget):
         
         self.form_widget.form_closed.connect(self.show_list_and_refresh)
         
-        # === YENİLİK BURADADIR ===
-        # Əsas pəncərədən gələn siqnalı list_widget-in metoduna bağlayırıq
         main_win = QApplication.instance().property("main_window")
         if main_win:
             main_win.settings_changed.connect(self.list_widget.apply_dynamic_styles)

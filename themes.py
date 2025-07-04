@@ -9,18 +9,18 @@
 # @@NAV_PADDING_V@@: Naviqasiya düymələrinin şaquli boşluğu
 # @@NAV_PADDING_H@@: Naviqasiya düymələrinin üfüqi boşluğu
 
-# --- QARA TEMA ŞABLONU ---
+# --- QARA TEMA ŞABLONU (Dəyişiklik yoxdur) ---
 DARK_TEMPLATE = """
 /* --- ÜMUMİ ELEMENTLƏR --- */
 QWidget {
     color: #e0e0e0;
-    background-color: #2c2c2c;
+    background-color: #1e1e1e; 
     font-size: @@FONT_SIZE@@pt;
     border: none;
 }
 QGroupBox {
-    background-color: #383838;
-    border: 1px solid #555555;
+    background-color: #252526;
+    border: 1px solid #333333;
     border-radius: @@RADIUS@@px;
     margin-top: 1ex;
     font-weight: bold;
@@ -29,7 +29,7 @@ QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top center;
     padding: 0 @@PADDING_H@@px;
-    background-color: #555555;
+    background-color: #3c3c3c;
     border-radius: @@RADIUS@@px;
 }
 QLabel {
@@ -40,235 +40,238 @@ QLabel {
 QLabel#label_total_amount { color: #28a745; font-weight: bold; }
 QLabel#label_total_discount_amount { color: #ffc107; font-weight: bold; }
 QLabel#label_total, QLabel#label_total_discount { font-weight: bold; }
-
-/* Form Elementləri */
 QLineEdit, QComboBox, QTextEdit, QDateEdit, QSpinBox, QDoubleSpinBox {
     padding: @@PADDING_V@@px;
-    border: 1px solid #555555;
+    border: 1px solid #3c3c3c;
     border-radius: @@RADIUS@@px;
-    background-color: #4a4a4a;
+    background-color: #333333;
 }
 QLineEdit:focus, QComboBox:focus, QTextEdit:focus, QDateEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-    border: 1px solid #007bff;
+    border: 1px solid #007acc;
 }
 QDateEdit::drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 25px;
     border-left-width: 1px;
-    border-left-color: #555555;
+    border-left-color: #3c3c3c;
     border-left-style: solid;
 }
-
-/* --- CƏDVƏLLƏR --- */
 QTableWidget {
-    background-color: #3C3C3C;
-    alternate-background-color: #464646;
-    gridline-color: #5A5A5A;
-    border: 1px solid #5A5A5A;
+    background-color: #252526;
+    alternate-background-color: #2a2a2a;
+    gridline-color: #333333;
+    border: 1px solid #333333;
 }
 QTableWidget::item {
     padding: @@PADDING_V@@px;
+    border-bottom: 1px solid #333333;
 }
 QTableWidget::item:selected {
-    background-color: #007BFF;
+    background-color: #094771;
     color: white;
 }
 QHeaderView::section {
-    background-color: #555555;
+    background-color: #333333;
     color: #e0e0e0;
     padding: @@PADDING_V@@px;
-    border: 1px solid #666666;
+    border: 1px solid #3c3c3c;
     font-weight: bold;
 }
-
-/* --- DÜYMƏLƏR VƏ TOOLBAR --- */
 QPushButton {
-    background-color: #007BFF;
+    background-color: #007acc;
     color: white;
     border-radius: @@RADIUS@@px;
     padding: @@PADDING_V@@px @@PADDING_H@@px;
     font-weight: bold;
-}
-QPushButton:hover { background-color: #0056b3; }
-QPushButton#btn_cancel { background-color: #6c757d; }
-QPushButton#btn_cancel:hover { background-color: #5a6268; }
-
-QToolBar {
-    background-color: transparent;
     border: none;
 }
-/* Üst Naviqasiya Paneli */
-QToolBar#MainNavBar QToolButton {
-    padding: @@NAV_PADDING_V@@px @@NAV_PADDING_H@@px;
-    border: 1px solid #3e3e42;
-    background-color: #3e3e42;
-    border-radius: @@RADIUS@@px;
-    color: #ccc;
-    font-weight: bold;
-    margin-right: @@MARGIN@@px;
+QPushButton:hover { background-color: #008ae6; }
+QPushButton:pressed { background-color: #006bb2; }
+QPushButton#btn_cancel { background-color: #555555; }
+QPushButton#btn_cancel:hover { background-color: #666666; }
+QToolBar#MainNavBar {
+    background-color: #252526; 
+    border-bottom: 1px solid #333333; 
+    padding: @@MARGIN@@px;
+    spacing: @@MARGIN@@px;
 }
-QToolBar#MainNavBar QToolButton:hover { background-color: #4f4f53; }
-QToolBar#MainNavBar QToolButton:pressed { background-color: #007acc; }
+QToolBar#MainNavBar QToolButton {
+    background-color: transparent; 
+    border: none;
+    padding: @@NAV_PADDING_V@@px @@NAV_PADDING_H@@px;
+    border-radius: @@RADIUS@@px;
+    color: #d0d0d0;
+    font-weight: bold;
+}
+QToolBar#MainNavBar QToolButton:hover {
+    background-color: #3c3c3c; 
+    color: #ffffff;
+}
+QToolBar#MainNavBar QToolButton:pressed, QToolBar#MainNavBar QToolButton:checked {
+    background-color: #007acc; 
+    color: white;
+}
 QToolBar#MainNavBar QToolButton::menu-indicator { image: none; }
-
-/* Cədvəl və Form daxilindəki kiçik düymələr */
-QToolButton {
+QMdiSubWindow QToolButton {
     padding: @@PADDING_V@@px;
     margin: @@MARGIN@@px;
     border: 1px solid #555555;
     border-radius: @@RADIUS@@px;
     background-color: #4a4a4a;
 }
-QToolButton:hover { background-color: #5a5a5a; }
-
-/* --- PƏNCƏRƏ ELEMENTLƏRİ --- */
-QTabWidget::pane { border-top: 2px solid #555555; }
+QMdiSubWindow QToolButton:hover { background-color: #5a5a5a; }
+QToolBar#TaskBar {
+    background-color: #004c8c;
+    border: none;
+}
+QToolBar#TaskBar QToolButton {
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
+    padding: @@PADDING_V@@px @@PADDING_H@@px;
+}
+QToolBar#TaskBar QToolButton:checked, QToolBar#TaskBar QToolButton:hover {
+    background-color: #006bb2;
+}
+QToolButton#TaskbarCloseButton {
+    background-color: transparent;
+    border: none;
+    padding: @@PADDING_V@@px;
+    border-radius: @@RADIUS@@px;
+}
+QToolButton#TaskbarCloseButton:hover {
+    background-color: #c42b1c;
+}
+QTabWidget::pane { border-top: 2px solid #333333; }
 QTabBar::tab {
-    background: #383838;
-    border: 1px solid #555555;
-    border-bottom-color: #2c2c2c; /* Pane-nin borderi ilə birləşsin deyə */
+    background: #252526;
+    border: 1px solid #333333;
+    border-bottom-color: #1e1e1e;
     border-top-left-radius: @@RADIUS@@px;
     border-top-right-radius: @@RADIUS@@px;
     padding: @@PADDING_V@@px @@PADDING_H@@px;
+    color: #a0a0a0;
 }
-QTabBar::tab:selected, QTabBar::tab:hover { background: #4a4a4a; }
-QTabBar::tab:selected { border-bottom-color: #4a4a4a; } /* Seçilən tab pane ilə birləşik görünsün */
-
+QTabBar::tab:hover { background: #3c3c3c; color: #ffffff; }
+QTabBar::tab:selected {
+    background: #1e1e1e; 
+    color: #ffffff;
+    font-weight: bold;
+    border-bottom-color: #1e1e1e;
+}
 QMdiSubWindow {
-    border: 1px solid #666666;
-    border-radius: @@RADIUS@@px;
+    background-color: #22272e;
+    border-radius: 8px;
+    border: 1px solid #000000;
 }
 QMdiSubWindow::titleBar {
-    background-color: #3e3e42;
+    background-color: #2a2a2a;
     color: #e0e0e0;
     padding: @@MARGIN@@px;
 }
-QMdiArea { background-color: #252526; }
-QMenuBar { background-color: #2d2d30; color: #ccc; }
-QMenuBar::item:selected { background-color: #3e3e42; }
-QMenu { background-color: #2d2d30; color: #ccc; border: 1px solid #000; }
+QMdiArea { background-color: #1a1a1a; }
+QMenuBar { background-color: #252526; color: #ccc; }
+QMenuBar::item:selected { background-color: #3c3c3c; }
+QMenu { background-color: #252526; color: #ccc; border: 1px solid #3c3c3c; }
 QMenu::item:selected { background-color: #007acc; }
 QStatusBar { color: #CCCCCC; }
-QSplitter::handle { background-color: #555555; }
-QSplitter::handle:hover { background-color: #666666; }
+QSplitter::handle { background-color: #333333; width: 1px; }
+QSplitter::handle:hover { background-color: #007acc; }
 """
 
-# --- AĞ TEMA ŞABLONU ---
+# --- AĞ TEMA ŞABLONU (YENİ DƏYİŞİKLİKLƏR BURADADIR) ---
 LIGHT_TEMPLATE = """
 QWidget {
-    color: #000000;
-    background-color: #FDFDFD;
+    color: #2d2d2d;
+    background-color: #fdfdfd; 
     font-size: @@FONT_SIZE@@pt;
     border: none;
 }
-QGroupBox {
-    background-color: #F0F0F0;
-    border: 1px solid #CCCCCC;
+
+/* === DÜZƏLİŞ 1: Menyu və Pəncərə Başlıqları Boz Edilir === */
+QMenuBar {
+    background-color: #E0E0E0; /* Açıq boz */
+    color: #2d2d2d;
+}
+QMdiSubWindow::titleBar {
+    background-color: #E0E0E0; /* Açıq boz */
+    color: #333333;
+    padding: @@MARGIN@@px;
+}
+QMdiSubWindow {
+    border: 1px solid #DCDCDC;
+    background-color: #FFFFFF; /* Pəncərənin içi ağ qalır */
+}
+
+/* === DÜZƏLİŞ 2: Pəncərə Daxili Toolbar Stili === */
+QMdiSubWindow QToolBar {
+    background-color: #EAE8D9; /* İstədiyiniz tünd krem/bej rəngi */
+    border-bottom: 1px solid #DCDCDC;
+    padding-top: 1px;    /* Qalınlığı azaltmaq üçün */
+    padding-bottom: 1px; /* Qalınlığı azaltmaq üçün */
+}
+
+/* === DÜZƏLİŞ 3: Toolbar Düymələri və İkon Rəngi === */
+QMdiSubWindow QToolButton {
+    background-color: transparent;
+    color: #33373B; /* İkonların tünd rəngi */
+    border: none;
+    padding: 4px; /* Qalınlığı azaltmaq üçün */
+    margin: @@MARGIN@@px;
     border-radius: @@RADIUS@@px;
-    margin-top: 1ex;
+}
+QMdiSubWindow QToolButton:hover { 
+    background-color: #DCDCDC; 
+}
+QMdiSubWindow QToolButton:pressed {
+    background-color: #C0C0C0;
+}
+
+/* === ÜST NAVİQASİYA PANELİ === */
+QToolBar#MainNavBar {
+    background-color: #EAE8D9;
+    border-bottom: 1px solid #DCDCDC;
+    padding: @@MARGIN@@px;
+}
+QToolBar#MainNavBar QToolButton {
+    background-color: transparent;
+    border: none;
+    padding: @@NAV_PADDING_V@@px @@NAV_PADDING_H@@px;
+    border-radius: @@RADIUS@@px;
+    color: #333333;
     font-weight: bold;
 }
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top center;
-    padding: 0 @@PADDING_H@@px;
-    background-color: #E0E0E0;
-    border-radius: @@RADIUS@@px;
-}
-QLabel { background-color: transparent; padding: @@MARGIN@@px; }
-QLabel#label_total_amount { color: #1E8449; font-weight: bold; }
-QLabel#label_total_discount_amount { color: #D35400; font-weight: bold; }
-QLabel#label_total, QLabel#label_total_discount { font-weight: bold; }
-
-QLineEdit, QComboBox, QTextEdit, QDateEdit, QSpinBox, QDoubleSpinBox {
-    padding: @@PADDING_V@@px;
-    border: 1px solid #AAAAAA;
-    border-radius: @@RADIUS@@px;
-    background-color: #FFFFFF;
-}
-QLineEdit:focus, QComboBox:focus, QTextEdit:focus, QDateEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-    border: 1px solid #0078d7;
-}
-QDateEdit::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right;
-    width: 25px;
-    border-left-width: 1px;
-    border-left-color: #AAAAAA;
-    border-left-style: solid;
-}
-
-QTableWidget {
-    background-color: #FFFFFF;
-    alternate-background-color: #F8F8F8;
-    gridline-color: #E0E0E0;
-    border: 1px solid #CCCCCC;
-}
-QTableWidget::item { padding: @@PADDING_V@@px; }
-QTableWidget::item:selected { background-color: #0078d7; color: white; }
-
-QHeaderView::section {
-    background-color: #E8E8E8;
+QToolBar#MainNavBar QToolButton:hover {
+    background-color: #DCD8C8;
     color: #000000;
-    padding: @@PADDING_V@@px;
-    border: 1px solid #CCCCCC;
-    font-weight: bold;
 }
-
-QPushButton {
+QToolBar#MainNavBar QToolButton:pressed, QToolBar#MainNavBar QToolButton:checked {
     background-color: #0078d7;
     color: white;
-    border-radius: @@RADIUS@@px;
+}
+
+/* === ALT TASKBAR === */
+QToolBar#TaskBar {
+    background-color: #0078d7;
+    border: none;
+}
+QToolBar#TaskBar QToolButton {
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
     padding: @@PADDING_V@@px @@PADDING_H@@px;
-    font-weight: bold;
 }
-QPushButton:hover { background-color: #005ecb; }
-QPushButton#btn_cancel { background-color: #7f8c8d; }
-QPushButton#btn_cancel:hover { background-color: #616A6B; }
-
-QToolBar { background-color: #F0F0F0; border: none; }
-
-QToolBar#MainNavBar QToolButton {
-    padding: @@NAV_PADDING_V@@px @@NAV_PADDING_H@@px;
-    border: 1px solid #c0c0c0;
-    background-color: #f0f0f0;
-    border-radius: @@RADIUS@@px;
-    color: #000000;
-    font-weight: bold;
-    margin-right: @@MARGIN@@px;
+QToolBar#TaskBar QToolButton:checked, QToolBar#TaskBar QToolButton:hover {
+    background-color: #005a9e;
 }
-QToolBar#MainNavBar QToolButton:hover { background-color: #e0e0e0; }
-QToolBar#MainNavBar QToolButton:pressed { background-color: #0078d7; color: white; }
-QToolBar#MainNavBar QToolButton::menu-indicator { image: none; }
-
-QToolButton {
+QToolButton#TaskbarCloseButton {
+    background-color: transparent;
+    border: none;
     padding: @@PADDING_V@@px;
-    margin: @@MARGIN@@px;
-    border: 1px solid #c0c0c0;
     border-radius: @@RADIUS@@px;
-    background-color: #E8E8E8;
 }
-QToolButton:hover { background-color: #DDEEFF; }
-
-QTabBar::tab {
-    background: #E0E0E0;
-    border: 1px solid #CCCCCC;
-    border-bottom: none;
-    padding: @@PADDING_V@@px @@PADDING_H@@px;
-    border-top-left-radius: @@RADIUS@@px;
-    border-top-right-radius: @@RADIUS@@px;
+QToolButton#TaskbarCloseButton:hover {
+    background-color: #E81123;
 }
-QTabBar::tab:selected, QTabBar::tab:hover { background: #FFFFFF; }
-
-QMdiSubWindow { border: 1px solid #AAAAAA; border-radius: @@RADIUS@@px; }
-QMdiSubWindow::titleBar { background-color: #E0E0E0; color: #000000; padding: @@MARGIN@@px; }
-QMdiArea { background-color: #D6D6D6; }
-QMenuBar { background-color: #F0F0F0; color: #000000; }
-QMenuBar::item:selected { background-color: #DDEEFF; }
-QMenu { background-color: #FFFFFF; color: #000000; border: 1px solid #CCCCCC; }
-QMenu::item:selected { background-color: #0078d7; color: #FFFFFF; }
-QStatusBar { color: #000000; }
-QSplitter::handle { background-color: #D0D0D0; }
-QSplitter::handle:hover { background-color: #B0B0B0; }
 """
